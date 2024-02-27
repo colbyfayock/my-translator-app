@@ -1,9 +1,25 @@
 "use client";
 
+import { useState } from 'react';
+
 const Translator = () => {
+  const [text, setText] = useState<string>();
+
   const isActive = false;
   const isSpeechDetected = false;
   const language = 'en-US';
+
+  function handleOnRecord() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.onresult = async function(event) {
+      const transcript = event.results[0][0].transcript;
+      setText(transcript);
+    }
+
+    recognition.start();
+  }
 
   return (
     <div className="mt-12 px-4">
@@ -48,6 +64,7 @@ const Translator = () => {
             <p>
               <button
                 className={`w-full h-full uppercase font-semibold text-sm  ${isActive ? 'text-white bg-red-500' : 'text-zinc-400 bg-zinc-900'} color-white py-3 rounded-sm`}
+                onClick={handleOnRecord}
               >
                 { isActive ? 'Stop' : 'Record' }
               </button>
@@ -59,7 +76,7 @@ const Translator = () => {
 
       <div className="max-w-lg mx-auto mt-12">
         <p className="mb-4">
-          Spoken Text:
+          Spoken Text: { text }
         </p>
         <p>
           Translation:
