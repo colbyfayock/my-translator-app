@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 const Translator = () => {
   const [text, setText] = useState<string>();
+  const [translation, setTranslation] = useState<string>();
 
   const isActive = false;
   const isSpeechDetected = false;
@@ -16,6 +17,14 @@ const Translator = () => {
     recognition.onresult = async function(event) {
       const transcript = event.results[0][0].transcript;
       setText(transcript);
+      const results = await fetch('/api/translate', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: transcript,
+          language: 'pt-BR'
+        })
+      }).then(r => r.json());
+      setTranslation(results.text);
     }
 
     recognition.start();
@@ -79,7 +88,7 @@ const Translator = () => {
           Spoken Text: { text }
         </p>
         <p>
-          Translation:
+          Translation: { translation }
         </p>
       </div>
 
