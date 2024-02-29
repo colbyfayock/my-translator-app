@@ -16,7 +16,9 @@ const Translator = () => {
 
     recognition.onresult = async function(event) {
       const transcript = event.results[0][0].transcript;
+
       setText(transcript);
+
       const results = await fetch('/api/translate', {
         method: 'POST',
         body: JSON.stringify({
@@ -24,7 +26,11 @@ const Translator = () => {
           language: 'pt-BR'
         })
       }).then(r => r.json());
+
       setTranslation(results.text);
+
+      const utterance = new SpeechSynthesisUtterance(results.text);
+      window.speechSynthesis.speak(utterance);
     }
 
     recognition.start();
@@ -38,7 +44,7 @@ const Translator = () => {
           <div className="bg-blue-200 rounded-lg p-2 border-2 border-blue-300">
             <ul className="font-mono font-bold text-blue-900 uppercase px-4 py-2 border border-blue-800 rounded">
               <li>
-                &gt; Translation Mode: 
+                &gt; Translation Mode:
               </li>
               <li>
                 &gt; Dialect:
