@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { default as languageCodesData } from '@/data/language-codes.json';
 import { default as countryCodesData } from '@/data/country-codes.json';
@@ -9,12 +9,14 @@ const languageCodes: Record<string, string> = languageCodesData;
 const countryCodes: Record<string, string> = countryCodesData;
 
 const Translator = () => {
+  const recognitionRef = useRef<SpeechRecognition>();
+
+  const [isActive, setIsActive] = useState<boolean>(false);
   const [text, setText] = useState<string>();
   const [translation, setTranslation] = useState<string>();
   const [voices, setVoices] = useState<Array<SpeechSynthesisVoice>>();
   const [language, setLanguage] = useState<string>('pt-BR');
 
-  const isActive = false;
   const isSpeechDetected = false;
 
   const availableLanguages = Array.from(new Set(voices?.map(({ lang }) => lang)))
@@ -51,10 +53,24 @@ const Translator = () => {
   }, []);
 
   function handleOnRecord() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    if ( isActive ) {
+      recognitionRef.current?.stop();
+      setIsActive(false);
+      return;
+    }
 
-    recognition.onresult = async function(event) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+
+    recognitionRef.current.onstart = function() {
+      setIsActive(true);
+    }
+
+    recognitionRef.current.onend = function() {
+      setIsActive(false);
+    }
+    
+    recognitionRef.current.onresult = async function(event) {
       const transcript = event.results[0][0].transcript;
 
       setText(transcript);
@@ -76,7 +92,7 @@ const Translator = () => {
       window.speechSynthesis.speak(utterance);
     }
 
-    recognition.start();
+    recognitionRef.current.start();
   }
 
   return (
