@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 
+import { default as languageCodesData } from '@/data/language-codes.json';
+import { default as countryCodesData } from '@/data/country-codes.json';
+
+const languageCodes: Record<string, string> = languageCodesData;
+const countryCodes: Record<string, string> = countryCodesData;
+
 const Translator = () => {
   const [text, setText] = useState<string>();
   const [translation, setTranslation] = useState<string>();
@@ -11,7 +17,19 @@ const Translator = () => {
   const isActive = false;
   const isSpeechDetected = false;
 
-  const availableLanguages = Array.from(new Set(voices?.map(({ lang }) => lang))).sort();
+  const availableLanguages = Array.from(new Set(voices?.map(({ lang }) => lang)))
+    .map(lang => {
+      const split = lang.split('-');
+      const languageCode: string = split[0];
+      const countryCode: string = split[1];
+      return {
+        lang,
+        label: languageCodes[languageCode] || lang,
+        dialect: countryCodes[countryCode]
+      }
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+
   const availableVoices = voices?.filter(({ lang }) => lang === language);
   const activeVoice =
     availableVoices?.find(({ name }) => name.includes('Google'))
@@ -97,10 +115,10 @@ const Translator = () => {
                 <select className="w-full text-[.7rem] rounded-sm border-zinc-300 px-2 py-1 pr-7" name="language" value={language} onChange={(event) => {
                   setLanguage(event.currentTarget.value);
                 }}>
-                  {availableLanguages.map((language) => {
+                  {availableLanguages.map(({ lang, label }) => {
                     return (
-                      <option key={language} value={language}>
-                        { language }
+                      <option key={lang} value={lang}>
+                        { label } ({ lang })
                       </option>
                     )
                   })}
