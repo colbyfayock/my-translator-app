@@ -59,6 +59,8 @@ const Translator = () => {
       return;
     }
 
+    speak(' ');
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
 
@@ -69,7 +71,7 @@ const Translator = () => {
     recognitionRef.current.onend = function() {
       setIsActive(false);
     }
-    
+
     recognitionRef.current.onresult = async function(event) {
       const transcript = event.results[0][0].transcript;
 
@@ -85,14 +87,20 @@ const Translator = () => {
 
       setTranslation(results.text);
 
-      const utterance = new SpeechSynthesisUtterance(results.text);
-      if ( activeVoice ) {
-        utterance.voice = activeVoice;
-      };
-      window.speechSynthesis.speak(utterance);
+      speak(results.text);
     }
 
     recognitionRef.current.start();
+  }
+
+  function speak(text: string) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    if ( activeVoice ) {
+      utterance.voice = activeVoice;
+    };
+
+    window.speechSynthesis.speak(utterance);
   }
 
   return (
