@@ -1,14 +1,36 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Translator = () => {
   const [text, setText] = useState<string>();
   const [translation, setTranslation] = useState<string>();
+  const [voices, setVoices] = useState<Array<SpeechSynthesisVoice>>();
+  const [language, setLanguage] = useState<string>('pt-BR');
 
   const isActive = false;
   const isSpeechDetected = false;
-  const language = 'en-US';
+
+  const availableLanguages = Array.from(new Set(voices?.map(({ lang }) => lang))).sort();
+  const availableVoices = voices?.filter(({ lang }) => lang === language);
+  const activeVoice =
+    availableVoices?.find(({ name }) => name.includes('Google'))
+    || availableVoices?.find(({ name }) => name.includes('Luciana'))
+    || availableVoices?.[0];
+
+  useEffect(() => {
+    const voices = window.speechSynthesis.getVoices();
+    if ( Array.isArray(voices) && voices.length > 0 ) {
+      setVoices(voices);
+      return;
+    }
+    if ( 'onvoiceschanged' in window.speechSynthesis ) {
+      window.speechSynthesis.onvoiceschanged = function() {
+        const voices = window.speechSynthesis.getVoices();
+        setVoices(voices);
+      }
+    }
+  }, []);
 
   function handleOnRecord() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -30,6 +52,9 @@ const Translator = () => {
       setTranslation(results.text);
 
       const utterance = new SpeechSynthesisUtterance(results.text);
+      if ( activeVoice ) {
+        utterance.voice = activeVoice;
+      };
       window.speechSynthesis.speak(utterance);
     }
 
@@ -69,10 +94,16 @@ const Translator = () => {
             <form>
               <div>
                 <label className="block text-zinc-500 text-[.6rem] uppercase font-bold mb-1">Language</label>
-                <select className="w-full text-[.7rem] rounded-sm border-zinc-300 px-2 py-1 pr-7" name="language">
-                  <option value="en-US">
-                    English (en-US)
-                  </option>
+                <select className="w-full text-[.7rem] rounded-sm border-zinc-300 px-2 py-1 pr-7" name="language" value={language} onChange={(event) => {
+                  setLanguage(event.currentTarget.value);
+                }}>
+                  {availableLanguages.map((language) => {
+                    return (
+                      <option key={language} value={language}>
+                        { language }
+                      </option>
+                    )
+                  })}
                 </select>
               </div>
             </form>
