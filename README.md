@@ -6,7 +6,6 @@ Demo for tutorial [How to Build an AI Voice Translator in Next.js with Web Speec
 
 📺 YouTube: https://www.youtube.com/watch?v=JFfCDvKiJqU
 
-🚀 Demo: https://my-universal-translator.vercel.app/
 
 ## More tutorials and walkthroughs
 
